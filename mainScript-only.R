@@ -1,0 +1,639 @@
+#' ---	
+#' title: 'mainScript: Manifold Learning for Flow Cytometry Data 2016-2017'	
+#' output:	
+#'   html_document: default	
+#'   pdf_document: default	
+#' ---	
+#' Note: Compiling this may be time intesive: 13 Diffusion Maps are created, plotted in 2D and plotted in Interactive 3D. 	
+#' 	
+#' Note: Several notes are placed throughout markdown file for clarity.	
+#' 	
+#' 	
+knitr::opts_chunk$set(echo = TRUE)	
+#' 	
+#' 	
+#' 	
+#' 	
+#source("https://bioconductor.org/biocLite.R")	
+#library("BiocInstaller")	
+#biocLite("destiny")	
+#biocLite("prada")	
+#biocLite("flowCore")	
+library("destiny")	
+library("prada")	
+library("flowCore")	
+library(rgl)	
+#' 	
+#' 	
+#' 	
+# Note: changes in working directory are necessary to read in FCS files	
+# Note: all data files can be found in Dropbox under files with same name	
+	
+# Create a flowSet from 10 Compensation Control FCS files for each day of experimentation ####	
+# Data from: Dropbox > ALCAM Data > WT AA young HSPC 	
+#DOE 041311    	
+setwd("/Users/jeho/GitHub/mice_data_new/CompData041311")	
+comp041311.data <- read.flowSet(transformation = FALSE)	
+# Finding the spillover matrix and using it for compensation	
+comp041311.mat<-spillover(comp041311.data[,7:15], unstained = "Unstained.fcs", 	
+                          fsc = "FSC-A",ssc = "SSC-A",stain_match ="regexpr",	
+                          useNormFilt=FALSE,method = "mean")	
+# Use compensation matrix from that date on mice data	
+setwd("/Users/jeho/GitHub/mice_data_new/mice041311_714")	
+mice714.data <-read.flowSet(path = ".", transformation = FALSE)	
+setwd("/Users/jeho/GitHub/mice_data_new/mice041311_720")	
+mice720.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice714.data.comp <-compensate(mice714.data,comp041311.mat)	
+mice720.data.comp <-compensate(mice720.data,comp041311.mat)	
+#' 	
+#' 	
+#' 	
+#DOE 052711	
+#setwd("/Users/jeho/GitHub/mice_data_new/CompData052711")	
+comp052711.data <- read.flowSet(path = "/Users/jeho/GitHub/mice_data_new/CompData052711", transformation = FALSE)	
+# Finding the spillover matrix and using it for compensation	
+### THIS LINE!	
+#comp052711.mat<-spillover(comp052711.data[,c(7:9, 11:16)], unstained = "Unstained.fcs", fsc = #"FSC-A",ssc = "SSC-A",stain_match ="regexpr",	
+#                          useNormFilt=FALSE,method = "mean")	
+# Use compensation matrix from that date on mice data	
+#setwd("/Users/jeho/GitHub/mice_data_new/mice052711_727")	
+#mice727.data <-read.flowSet(path = #"/Users/jeho/GitHub/mice_data_new/CompData052711_727", transformation = FALSE)	
+#setwd("/Users/jeho/GitHub/mice_data_new/mice052711_728")	
+#mice728.data <-read.flowSet(path = "/Users/jeho/GitHub/mice_data_new/mice052711_728", transformation = FALSE)	
+#mice727.data.comp <-compensate(mice727.data,comp052711.mat)	
+#mice728.data.comp <-compensate(mice728.data,comp052711.mat)	
+#' 	
+#' 	
+#' 	
+#DOE Experiment 040412	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/CompDataExperiment040412")	
+compExp040412.data <- read.flowSet( transformation = FALSE)	
+	
+# Finding the spillover matrix and using it for compensation	
+compExp040412.mat<-spillover(compExp040412.data[,c(7:16)], unstained = "Unstained.fcs", fsc = "FSC-A",ssc = "SSC-A",stain_match ="regexpr",	
+                          useNormFilt=FALSE,method = "mean")	
+	
+# Use compensation matrix from that date on mice data	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice040412_781")	
+mice781.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice781.data.comp <-compensate(mice781.data ,compExp040412.mat)	
+# this mice has 6 experiments 	
+#' 	
+#' 	
+#' 	
+#DOE Experiment 041412  	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/CompData041412")	
+comp041412.data <- read.flowSet( transformation = FALSE)	
+# Finding the spillover matrix and using it for compensation	
+comp041412.mat<-spillover(comp041412.data[,c(7:17)], unstained = "Unstained.fcs", 	
+                          fsc = "FSC-A",ssc = "SSC-A",stain_match ="regexpr",	
+                          useNormFilt=FALSE,method = "mean")	
+# Use compensation matrix from that date on mice data	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice041412_799")	
+mice799.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice799.data.comp <-compensate(mice799.data ,comp041412.mat)	
+# this mice has 6 experiments 	
+#' 	
+#' 	
+#' 	
+#DOE 122911 HSC	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/CompData122911HSC")	
+compHSC122911.data <- read.flowSet( transformation = FALSE)	
+# Finding the spillover matrix and using it for compensation	
+compHSC122911.mat<-spillover(compHSC122911.data[,c(7:14)], unstained = "Unstained.fcs", fsc = "FSC-A",ssc = "SSC-A",stain_match ="regexpr",	
+                          useNormFilt=FALSE,method = "mean")	
+# Use compensation matrix from that date on mice data	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_585HSC")	
+mice585HSC.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice585HSC.data.comp <-compensate(mice585HSC.data ,compHSC122911.mat)	
+# this mice has 6 experiments 	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_600HSC")	
+mice600HSC.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice600HSC.data.comp <-compensate(mice600HSC.data ,compHSC122911.mat)	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_628HSC")	
+mice628HSC.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice628HSC.data.comp <-compensate(mice628HSC.data ,compHSC122911.mat)	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_641HSC")	
+mice641HSC.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice641HSC.data.comp <-compensate(mice641HSC.data ,compHSC122911.mat)	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_642HSC")	
+mice642HSC.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice642HSC.data.comp <-compensate(mice642HSC.data ,compHSC122911.mat)	
+	
+#DOE 122911 MPlin	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/CompData122911MPlin")	
+compMPlin122911.data <- read.flowSet( transformation = FALSE)	
+# Finding the spillover matrix and using it for compensation	
+compMPlin122911.mat<-spillover(compMPlin122911.data[,c(7:14)], unstained = "Unstained.fcs", fsc = "FSC-A",ssc = "SSC-A",stain_match ="regexpr",	
+                          useNormFilt=FALSE,method = "mean")	
+# Use compensation matrix from that date on mice data	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_585MPlin")	
+mice585MPlin.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice585MPlin.data.comp <-compensate(mice585MPlin.data ,compMPlin122911.mat)	
+# this mice has 6 experiments 	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_600MPlin")	
+mice600MPlin.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice600MPlin.data.comp <-compensate(mice600MPlin.data ,compMPlin122911.mat)	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_628MPlin")	
+mice628MPlin.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice628MPlin.data.comp <-compensate(mice628MPlin.data ,compMPlin122911.mat)	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_641MPlin")	
+mice641MPlin.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice641MPlin.data.comp <-compensate(mice641MPlin.data ,compMPlin122911.mat)	
+setwd("/Users/jeho/GitHub/mice_data_new/miceAggedWT/mice122911_642MPlin")	
+mice642MPlin.data <-read.flowSet(path = ".", transformation = FALSE)	
+mice642MPlin.data.comp <-compensate(mice642MPlin.data ,compMPlin122911.mat)	
+#' 	
+#' 	
+#' 	
+#' 	
+# Normalize Data 	
+# create a function which normalizes	
+normData <- function(data,col){	
+  # normData is a function which normalizes the observations of user specified columns	
+  # normalization is done by subtracting the mean of column 	
+  # and dividing by standard deviation	
+  # returns: a data frame with normalized columns 	
+  # data is the data frame you want to normalize	
+  # col vec, is a vector of column indices you want to normalize with respect to that column 	
+  allcols = c(1:length(col))	
+  dataframe= as.data.frame(matrix(, nrow = nrow(data), ncol = ncol(data)))	
+  for (ii in c(1:length(col))){	
+    if (is.element(allcols[ii], col) == FALSE){	
+      dataframe[allcols[ii]] <- data[allcols[ii]] # copy from Original data frame to new one	
+    }else{dataframe[, col[ii]]= (data[,col[ii]] - mean (data[,col[ii]]))/sd( data[,col[ii]])	
+    }# otherwise you normalize 	
+  }	
+  return(dataframe)	
+}	
+	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+mice714.data.exprs <- data.frame()	
+data = c()	
+for( i in c(1:length(mice714.data.comp) ) ){	
+  mtemp <-exprs( mice714.data.comp[[i]][,7:15])	
+  mtemp<- normData(mtemp, c(1:9)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice714.data.exprs <- rbind(mice714.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+mice720.data.exprs <- data.frame()	
+data = c()	
+for( i in c(1:length(mice720.data.comp) ) ){	
+  mtemp <-exprs( mice720.data.comp[[i]][,7:15])	
+  mtemp<- normData(mtemp, c(1:9)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice720.data.exprs <- rbind(mice720.data.exprs,mtemp)	
+}	
+ 	
+# mice727.data.exprs <- data.frame()	
+# data = c()	
+# for( i in c(1:length(mice727.data.comp) ) ){	
+#   mtemp <-exprs( mice727.data.comp[[i]][,c(7:9, 11:16)])	
+#   mtemp<- normData(mtemp, c(1:9)) # normalize	
+#   celltype = rep(i,length(mtemp[,1]))	
+#   mtemp <- cbind(mtemp,celltype)	
+#   mice727.data.exprs <- rbind(mice727.data.exprs,mtemp)	
+# }	
+	
+# mice728.data.exprs <- data.frame()	
+# data = c()	
+# for( i in c(1:length(mice728.data.comp) ) ){	
+#   mtemp <-exprs( mice728.data.comp[[i]][,c(7:9, 11:16)])	
+#   mtemp<- normData(mtemp, c(1:9)) # normalize	
+#   celltype = rep(i,length(mtemp[,1]))	
+#   mtemp <- cbind(mtemp,celltype)	
+#   mice728.data.exprs <- rbind(mice728.data.exprs,mtemp)	
+# }	
+# combine data 	
+# mouseNumber = c( rep(1,length(mice714.data.exprs[,1])) , rep(2, length(mice720.data.exprs[,1])),	
+#                  rep(3,length(mice727.data.exprs [,1])) , rep(4, length(mice728.data.exprs [,1])) ) 	
+# miceYoungWT.data.exprs <- rbind( mice714.data.exprs, mice720.data.exprs,	
+#                                          mice727.data.exprs, mice728.data.exprs)	
+# add a column to distinguish mice	
+#miceYoungWT.data.exprs  <- cbind(miceYoungWT.data.exprs , mouseNumber) 	
+#' 	
+#' 	
+#' 	
+mice781.data.exprs <- data.frame()	
+data = c()	
+for( i in c(1:length(mice781.data.comp) ) ){	
+  mtemp <-exprs( mice781.data.comp[[i]][,c(7,8,11,12,14,16)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice781.data.exprs <- rbind(mice781.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+mice799.data.exprs <- data.frame()	
+data = c()	
+for( i in c(1:length(mice799.data.comp) ) ){	
+  mtemp <-exprs( mice799.data.comp[[i]][,c(7,8,12,13,15,17)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice799.data.exprs <- rbind(mice799.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+	
+mice585.data.exprs <- data.frame()	
+data = c()	
+# add the HSC data	
+for( i in c(1:length(mice585HSC.data.comp) ) ){	
+  mtemp <-exprs( mice585HSC.data.comp[[i]][,c(7,8,10,11,13,14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice585.data.exprs <- rbind(mice585.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+} 	
+# add the MP lin data	
+for( i in c(1:length(mice585MPlin.data.comp) ) ){	
+  mtemp <-exprs( mice585MPlin.data.comp[[i]][,c(7,8,11:14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i+1,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice585.data.exprs <- rbind(mice585.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+	
+mice600.data.exprs <- data.frame()	
+data = c()	
+# add the HSC data	
+for( i in c(1:length(mice600HSC.data.comp) ) ){	
+  mtemp <-exprs( mice600HSC.data.comp[[i]][,c(7,8,10,11,13,14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice600.data.exprs <- rbind(mice600.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+} 	
+# add the MP lin data	
+for( i in c(1:length(mice600MPlin.data.comp) ) ){	
+  mtemp <-exprs( mice600MPlin.data.comp[[i]][,c(7,8,11:14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i+1,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice600.data.exprs <- rbind(mice600.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+	
+mice628.data.exprs <- data.frame()	
+data = c()	
+# add the HSC data	
+for( i in c(1:length(mice628HSC.data.comp) ) ){	
+  mtemp <-exprs( mice628HSC.data.comp[[i]][,c(7,8,10,11,13,14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice628.data.exprs <- rbind(mice628.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+} 	
+# add the MP lin data	
+for( i in c(1:length(mice628MPlin.data.comp) ) ){	
+  mtemp <-exprs( mice628MPlin.data.comp[[i]][,c(7,8,11:14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i+1,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice628.data.exprs <- rbind(mice628.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+mice641.data.exprs <- data.frame()	
+data = c()	
+# add the HSC data	
+for( i in c(1:length(mice641HSC.data.comp) ) ){	
+  mtemp <-exprs( mice641HSC.data.comp[[i]][,c(7,8,10,11,13,14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice641.data.exprs <- rbind(mice641.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+} 	
+# add the MP lin data	
+for( i in c(1:length(mice641MPlin.data.comp) ) ){	
+  mtemp <-exprs( mice641MPlin.data.comp[[i]][,c(7,8,11:14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i+1,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice641.data.exprs <- rbind(mice641.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+	
+	
+	
+mice642.data.exprs <- data.frame()	
+data = c()	
+# add the HSC data	
+for( i in c(1:length(mice642HSC.data.comp) ) ){	
+  mtemp <-exprs( mice642HSC.data.comp[[i]][,c(7,8,10,11,13,14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice642.data.exprs <- rbind(mice642.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+} 	
+# add the MP lin data	
+for( i in c(1:length(mice642MPlin.data.comp) ) ){	
+  mtemp <-exprs( mice642MPlin.data.comp[[i]][,c(7,8,11:14)])	
+  mtemp<- normData(mtemp, c(1:6)) # normalize	
+  celltype = rep(i+1,length(mtemp[,1]))	
+  mtemp <- cbind(mtemp,celltype)	
+  mice642.data.exprs <- rbind(mice642.data.exprs,mtemp)	
+  # each experiment in a flowSet is addded here 	
+}	
+	
+	
+	
+# combine data 	
+mouseNumberAgged = c( rep(1,length(mice781.data.exprs[,1])) , rep(2, length(mice799.data.exprs[,1])),	
+                 rep(3,length(mice585.data.exprs [,1])) , rep(4, length(mice600.data.exprs [,1])) , 	
+                  rep(5,length(mice628.data.exprs [,1])) , rep(6, length(mice641.data.exprs [,1])),	
+                  rep(7,length(mice642.data.exprs [,1]))  ) 	
+# miceAggedWT.data.exprs includes data for mice: 781_799_585_600_628_641_642	
+miceAggedWT.data.exprs <- rbind( mice781.data.exprs , mice799.data.exprs, mice585.data.exprs,	
+                                         mice600.data.exprs, mice628.data.exprs, mice641.data.exprs, mice642.data.exprs)	
+	
+# add a column to distinguish mice	
+miceAggedWT.data.exprs   <- cbind(miceAggedWT.data.exprs  , mouseNumberAgged) 	
+	
+	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+# Diffusion map for mouse 714	
+DiffData.714 <-mice714.data.exprs[seq(1,length(mice714.data.exprs[,1]),by = 1000 ),] # subsample	
+D.714 <-DiffusionMap((DiffData.714[,-10]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+ 	
+# Diffusion map for mouse 720	
+DiffData.720 <-mice720.data.exprs[seq(1,length(mice720.data.exprs[,1]),by = 1000 ),] # subsample	
+D.720 <-DiffusionMap((DiffData.720[,-10]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+ 	
+# Diffusion map for mouse 727	
+##DiffData.727 <-mice727.data.exprs[seq(1,length(mice727.data.exprs[,1]),by = 1000 ),] # subsample	
+##D.727 <-DiffusionMap((DiffData.727[,-10]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+ 	
+# Diffusion map for mouse 728	
+##DiffData.728 <-mice728.data.exprs[seq(1,length(mice728.data.exprs[,1]),by = 1000 ),] # subsample	
+##D.728 <-DiffusionMap((DiffData.728[,-10]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+#' 	
+#'  	
+#' 	
+#' 	
+# Diffusion map for mouse 585	
+DiffData.585 <-mice585.data.exprs[seq(1,length(mice585.data.exprs[,1]),by = 1000 ),] # subsample	
+D.585 <-DiffusionMap((DiffData.585[,-7]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+	
+# Diffusion map for mouse 600	
+DiffData.600 <-mice600.data.exprs[seq(1,length(mice600.data.exprs[,1]),by = 1000 ),] # subsample	
+D.600 <-DiffusionMap((DiffData.600[,-7]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+	
+# Diffusion map for mouse 628	
+DiffData.628 <-mice628.data.exprs[seq(1,length(mice628.data.exprs[,1]),by = 1000 ),] # subsample	
+D.628 <-DiffusionMap((DiffData.628[,-7]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+	
+# Diffusion map for mouse 641	
+DiffData.641 <-mice641.data.exprs[seq(1,length(mice641.data.exprs[,1]),by = 1000 ),] # subsample	
+D.641 <-DiffusionMap((DiffData.641[,-7]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+	
+# Diffusion map for mouse 642	
+DiffData.642 <-mice642.data.exprs[seq(1,length(mice642.data.exprs[,1]),by = 1000 ),] # subsample	
+D.642 <-DiffusionMap((DiffData.642[,-7]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+	
+# Diffusion map for mouse 781	
+DiffData.781 <-mice781.data.exprs[seq(1,length(mice781.data.exprs[,1]),by = 1000 ),] # subsample	
+D.781 <-DiffusionMap((DiffData.781[,-7]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+	
+# Diffusion map for mouse 799	
+DiffData.799 <-mice781.data.exprs[seq(1,length(mice799.data.exprs[,1]),by = 1000 ),] # subsample	
+D.799 <-DiffusionMap((DiffData.799[,-7]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+	
+# Diffusion map for mice 714, 720, 727, 728 (all young, WT, mice)	
+##DiffData.YoungWT <-miceYoungWT.data.exprs [seq(1,length(miceYoungWT.data.exprs [,1]),by = 1000 ),] # subsample	
+#D.YoungWT <-DiffusionMap((DiffData.YoungWT[,-c(10,11)]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+#' 	
+#' 	
+#' 	
+#' 	
+	
+# Diffusion map for mice: 781_799_585_600_628_641_642 (all agged, WT, mice)	
+DiffData.AggedWT <-miceAggedWT.data.exprs [seq(1,length(miceAggedWT.data.exprs [,1]),by = 1000 ),] # subsample	
+D.AggedWT <-DiffusionMap((DiffData.AggedWT[,-c(7,8)]),verbose = TRUE,density.norm=TRUE,sigma = 150)	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+# Plot of Diffusion map for mouse 714	
+# plot.DiffusionMap(D.714, dim = 1:3, col = DiffData.714[,10], main= "Young, WT: 714" )	
+# colorlegend(DiffData.714[,10], pal = palette(), log = FALSE, posx = c(0.9, 0.93), posy = c(0.05, 0.9), main = "Cell Type")	
+	
+# Plot of Diffusion map for mouse 720	
+#plot.DiffusionMap(D.720, dim = 1:3, col = DiffData.720[,10], main= "Young, WT: 720" )	
+#colorlegend(DiffData.720[,10], pal = palette(), log = FALSE, posx = c(0.9, 0.93),   posy = c(0.05, 0.9), main = "Cell Type" )	
+	
+# Plot of Diffusion map for mouse 727	
+# plot.DiffusionMap(D.727, dim = 1:3, col = DiffData.727[,10], main= "Young, WT: 727" )	
+# colorlegend(DiffData.727[,10], pal = palette(), log = FALSE, posx = c(0.9, 0.93), 	
+#             posy = c(0.05, 0.9), main = "Cell Type" )	
+	
+# Plot of Diffusion map for mouse 728	
+# plot.DiffusionMap(D.728, dim = 1:3, col = DiffData.728[,10], main= "Young, WT: 728" )	
+# colorlegend(DiffData.728[,10], pal = palette(), log = FALSE, posx = c(0.9, 0.93), 	
+#             posy = c(0.05, 0.9), main = "Cell Type"  )	
+	
+# Note: Similar syntax is used for 2D plots of Agged WT with corresponding columns to color by	
+# Note: To color diffusion map by a specific marker, in the "col = Diff.Data714[x]" argument of the plot command, place the index of the marker of interest. 	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+#' 	
+# Plotting mice All Young WT individually in 3D #### 	
+	
+# # 3D plot of data for mouse 714	
+ plot3d(eigenvectors(D.714 )[, 1:3], pch = 1, col = DiffData.714[,10],	
+        type = 'p', main="Young WT: 714")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+YWT.714 <- scene3d()	
+# # Make it bigger	
+ YWT.714$par3d$windowRect <- 1.5*YWT.714$par3d$windowRect	
+# # and draw it again	
+ plot3d(YWT.714)	
+ rglwidget(YWT.714,elementId="Mouse 714", width = 700, height = 700)	
+	
+# # 3D plot of data for mouse 720	
+ plot3d(eigenvectors(D.720 )[, 1:3], pch = 1, col = DiffData.720[,10],	
+        type = 'p', main="Young WT: 720")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+YWT.720 <- scene3d()	
+  YWT.720$par3d$windowRect <- 1.5*YWT.720$par3d$windowRect	
+ plot3d(YWT.720)	
+ rglwidget(YWT.720,elementId="Mouse 720", width = 700, height = 700)	
+	
+# # 3D plot of data for mouse 727	
+# plot3d(eigenvectors(D.727 )[, 1:3], pch = 1, col = DiffData.727[,10], type = 'p', main="Young WT: 727")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+ YWT.727 <- scene3d()	
+ YWT.727$par3d$windowRect <- 1.5*YWT.727$par3d$windowRect	
+ plot3d(YWT.727)	
+ rglwidget(YWT.727,elementId="Mouse 727", width = 700, height = 700)	
+	
+# # 3D plot of data for mouse 728	
+# plot3d(eigenvectors(D.728 )[, 1:3], pch = 1, col = DiffData.728[,10],	
+#        type = 'p', main="Young WT: 728")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+ YWT.728 <- scene3d()	
+ YWT.728$par3d$windowRect <- 1.5*YWT.728$par3d$windowRect	
+ plot3d(YWT.728)	
+ rglwidget(YWT.728,elementId="Mouse 728", width = 700, height = 700)	
+ 	
+ # Note widgets can be closed manually or automatically with command:	
+ # rgl.close()	
+#' 	
+#' 	
+#' 	
+#' 	
+# Plotting mice All Agged WT individually in 3D #### 	
+	
+# # 3D plot of data for mouse 585	
+ plot3d(eigenvectors(D.585 )[, 1:3], pch = 1, col = DiffData.585[,7],	
+        type = 'p', main="Agged WT: 585")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+AWT.585 <- scene3d()	
+# # Make it bigger	
+ AWT.585$par3d$windowRect <- 1.5*AWT.585$par3d$windowRect	
+# # and draw it again	
+ plot3d(AWT.585)	
+ rglwidget(AWT.585,elementId="Mouse 585", width = 700, height = 700)	
+	
+# # 3D plot of data for mouse 600	
+ plot3d(eigenvectors(D.600 )[, 1:3], pch = 1, col = DiffData.600[,7],	
+        type = 'p', main="Agged WT: 600")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+AWT.600 <- scene3d()	
+  AWT.600$par3d$windowRect <- 1.5*AWT.600$par3d$windowRect	
+ plot3d(AWT.600)	
+ rglwidget(AWT.600,elementId="Mouse 600", width = 700, height = 700)	
+	
+# # 3D plot of data for mouse 628	
+ plot3d(eigenvectors(D.628 )[, 1:3], pch = 1, col = DiffData.628[,7],	
+        type = 'p', main="Agged WT: 628")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+AWT.628 <- scene3d()	
+ AWT.628$par3d$windowRect <- 1.5*AWT.628$par3d$windowRect	
+ plot3d(AWT.628)	
+ rglwidget(AWT.628,elementId="Mouse 628", width = 700, height = 700)	
+	
+# # 3D plot of data for mouse 641	
+ plot3d(eigenvectors(D.641)[, 1:3], pch = 1, col = DiffData.641[,7],	
+        type = 'p', main="Agged WT: 641")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+ AWT.641 <- scene3d()	
+ AWT.641$par3d$windowRect <- 1.5*AWT.641$par3d$windowRect	
+ plot3d(AWT.641)	
+ rglwidget(AWT.641,elementId="Mouse 641", width = 700, height = 700)	
+ 	
+ # # 3D plot of data for mouse 642	
+ plot3d(eigenvectors(D.642)[, 1:3], pch = 1, col = DiffData.642[,7],	
+        type = 'p', main="Agged WT: 642")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+ AWT.642 <- scene3d()	
+ AWT.642$par3d$windowRect <- 1.5*AWT.642$par3d$windowRect	
+ plot3d(AWT.642)	
+ rglwidget(AWT.642,elementId="Mouse 642", width = 700, height = 700)	
+ 	
+ # # 3D plot of data for mouse 781	
+ plot3d(eigenvectors(D.781)[, 1:3], pch = 1, col = DiffData.781[,7],	
+        type = 'p', main="Agged WT: 781")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+ AWT.781 <- scene3d()	
+ AWT.781$par3d$windowRect <- 1.5*AWT.781$par3d$windowRect	
+ plot3d(AWT.781)	
+ rglwidget(AWT.781,elementId="Mouse 781", width = 700, height = 700)	
+ 	
+ # # 3D plot of data for mouse 799	
+ plot3d(eigenvectors(D.799)[, 1:3], pch = 1, col = DiffData.799[,7],	
+        type = 'p', main="Young WT: 799")	
+ view3d(theta = 10, phi = 30, zoom = 1)	
+ legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+ AWT.799<- scene3d()	
+ AWT.799$par3d$windowRect <- 1.5*AWT.799$par3d$windowRect	
+ plot3d(AWT.799)	
+ rglwidget(AWT.799,elementId="Mouse 799", width = 700, height = 700)	
+ 	
+#' 	
+#' 	
+#' 	
+# 3D plot of data for mice 714_720_727_728 (all young, WT, mice)	
+#plot3d(eigenvectors(D.YoungWT )[, 1:3], pch = 1, col = DiffData.YoungWT[,10],	
+#       type = 'p', main="Young WT")	
+#view3d(theta = 10, phi = 30, zoom = 1)	
+#legend3d("topright", legend =c("HSC_BM", "lin_Bm","MP CLP_Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+#  use  mouse to rotate the plot in the window	
+# save it as a scene3d object	
+b <- scene3d()	
+# Make it bigger	
+#b$par3d$windowRect <- 1.5*b$par3d$windowRect	
+# and draw it again	
+plot3d(b)	
+rglwidget(b,elementId="idk6", width = 700, height = 700, reuse = FALSE)	
+rgl.close()	
+	
+#' 	
+#' 	
+#' 	
+# 3D plot of data for mice: 781_799_585_600_628_641_642 (all agged, WT, mice)	
+plot3d(eigenvectors(D.AggedWT )[, 1:3], pch = 1, col = DiffData.AggedWT[,7],	
+       type = 'p', main="Agged WT")	
+view3d(theta = 10, phi = 30, zoom = 1)	
+legend3d("topright", legend =c("HSC_BM", "Lin_Bm","MP Bm"), pch = 16, col = c(1,2,3), cex=1, inset=c(0.02))	
+# use  mouse to rotate the plot in the window	
+# save it as a scene3d object	
+r <- scene3d()	
+# Make it bigger	
+#r$par3d$windowRect <- 1.5*r$par3d$windowRect	
+# and draw it again	
+plot3d(r)	
+rglwidget(r,elementId="idk9", width = 700, height = 700, reuse = FALSE)	
+rgl.close()	
+	
+#' 	
+#'  	
+#'  	
+#'  	

@@ -1,1 +1,1 @@
-# r_diffusion_map
+# R Diffusion Map script
